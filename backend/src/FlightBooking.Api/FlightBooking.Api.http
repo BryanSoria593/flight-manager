@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:5080
+
+### List flights with their occupancy
+GET {{baseUrl}}/api/v1/flights
+
+### List the passengers of flight 2
+GET {{baseUrl}}/api/v1/flights/2/passengers
+
+### Register a passenger (201)
+POST {{baseUrl}}/api/v1/flights/1/passengers
+Content-Type: application/json
+
+{
+  "fullName": "Juan Pérez",
+  "documentNumber": "1799999999"
+}
+
+### Register on a full flight (409 Flight.Full)
+POST {{baseUrl}}/api/v1/flights/3/passengers
+Content-Type: application/json
+
+{
+  "fullName": "Juan Pérez",
+  "documentNumber": "1799999999"
+}
+
+### Invalid data (400 Request.Invalid)
+POST {{baseUrl}}/api/v1/flights/1/passengers
+Content-Type: application/json
+
+{
+  "fullName": "",
+  "documentNumber": "12"
+}
+
+### Unknown flight (404 Flight.NotFound)
+POST {{baseUrl}}/api/v1/flights/999/passengers
+Content-Type: application/json
+
+{
+  "fullName": "Juan Pérez",
+  "documentNumber": "1799999999"
+}
+
+### Simulated failure (503 Server.SimulatedFailure, Development only)
+GET {{baseUrl}}/api/v1/flights
+X-Simulate-Failure: true
+
+### Health check
+GET {{baseUrl}}/health
