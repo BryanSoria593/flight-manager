@@ -23,7 +23,7 @@ export function FlightCard({ flight, selected, onSelect }: FlightCardProps) {
   return (
     <button type="button" className="card" aria-pressed={selected} onClick={onSelect}>
       <span className="card-header">
-        <strong>{flight.flightNumber}</strong>
+        <strong className="flight-number">{flight.flightNumber}</strong>
         <span className={`badge badge-${level}`}>{label}</span>
       </span>
       <span className="route">

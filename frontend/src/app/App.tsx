@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
 import { FlightsPage } from '../features/flights'
 import { setSimulateFailure } from '../shared/api/httpClient'
 
@@ -17,6 +18,7 @@ export function App() {
     <>
       <header className="app-header">
         <h1>Registro de pasajeros</h1>
+        <ColorSchemeSwitcher />
         {import.meta.env.DEV && (
           <label className="dev-toggle">
             <input type="checkbox" checked={failureEnabled} onChange={(event) => toggleFailure(event.target.checked)} />

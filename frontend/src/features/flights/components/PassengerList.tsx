@@ -24,7 +24,7 @@ export function PassengerList({ flightId }: { flightId: number }) {
     <ul className="passenger-list">
       {passengers.data.map((passenger) => (
         <li key={passenger.id}>
-          {passenger.fullName} · {passenger.documentNumber}
+          {passenger.fullName} · <span className="passenger-document">{passenger.documentNumber}</span>
         </li>
       ))}
     </ul>
