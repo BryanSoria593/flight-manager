@@ -26,19 +26,22 @@ export class ApiError extends Error {
     return this.status === 0 || this.status >= 500
   }
 
-  static async fromResponse(response: Response): Promise<ApiError> {
-    const problem = (await response.json().catch(() => null)) as ProblemDetails | null
+  static fromProblem(status: number, problem: ProblemDetails | null): ApiError {
     const fieldErrors = problem?.errors ?? {}
     return new ApiError({
-      status: response.status,
+      status,
       code:
         problem?.code ??
         (Object.keys(fieldErrors).length > 0
           ? 'Request.Invalid'
-          : (gatewayCodes[response.status] ?? `Http.Status${response.status}`)),
-      message: problem?.detail ?? problem?.title ?? `HTTP ${response.status}`,
+          : (gatewayCodes[status] ?? `Http.Status${status}`)),
+      message: problem?.detail ?? problem?.title ?? `HTTP ${status}`,
       fieldErrors,
     })
+  }
+
+  static invalidResponse(status = 0): ApiError {
+    return new ApiError({ status, code: 'Response.Invalid', message: 'The server returned an invalid response.' })
   }
 }
 
@@ -47,6 +50,8 @@ const messages: Partial<Record<string, string>> = {
   'Passenger.AlreadyRegistered': 'Este documento ya está registrado en el vuelo.',
   'Flight.NotFound': 'El vuelo ya no existe. Actualiza la lista.',
   'Request.Invalid': 'Revisa los datos ingresados.',
+  'Request.Malformed': 'El servidor recibió una solicitud malformada. Intenta nuevamente.',
+  'Response.Invalid': 'El servidor devolvió una respuesta no válida. Intenta nuevamente.',
   'Server.SimulatedFailure': 'El servidor no está disponible (fallo simulado). Intenta nuevamente.',
   'Network.Unavailable': 'No pudimos conectar con el servidor. Verifica que la API esté en ejecución.',
   'Network.Timeout': 'El servidor tardó demasiado en responder. Intenta nuevamente.',

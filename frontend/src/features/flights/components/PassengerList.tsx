@@ -1,4 +1,5 @@
 import { Alert } from '../../../shared/components/Alert'
+import { StaleDataWarning } from '../../../shared/components/StaleDataWarning'
 import { getErrorMessage } from '../../../shared/api/ApiError'
 import { useFlightPassengers } from '../hooks/useFlights'
 
@@ -18,15 +19,20 @@ export function PassengerList({ flightId }: { flightId: number }) {
     )
   }
 
-  if (passengers.data.length === 0) return <p className="muted">Aún no hay pasajeros registrados.</p>
-
   return (
-    <ul className="passenger-list">
-      {passengers.data.map((passenger) => (
-        <li key={passenger.id}>
-          {passenger.fullName} · <span className="passenger-document">{passenger.documentNumber}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      {passengers.isRefetchError && <StaleDataWarning onRetry={() => passengers.refetch()} />}
+      {passengers.data.length === 0 ? (
+        <p className="muted">Aún no hay pasajeros registrados.</p>
+      ) : (
+        <ul className="passenger-list">
+          {passengers.data.map((passenger) => (
+            <li key={passenger.id}>
+              {passenger.fullName} · <span className="passenger-document">{passenger.documentNumber}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   )
 }

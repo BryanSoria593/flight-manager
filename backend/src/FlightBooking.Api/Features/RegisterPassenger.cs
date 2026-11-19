@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FlightBooking.Api.Domain;
 using FlightBooking.Api.Infrastructure;
 using FluentValidation;
@@ -11,18 +12,25 @@ public sealed record RegisterPassengerResponse(Guid Id, int FlightId, string Ful
 
 public sealed class RegisterPassengerValidator : AbstractValidator<RegisterPassengerRequest>
 {
+    private static readonly Regex AllowedName = new(@"^\p{L}[\p{L} .'\-]*$", RegexOptions.Compiled);
+
     public RegisterPassengerValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
         RuleFor(x => x.FullName)
             .NotEmpty().WithMessage("Full name is required.")
-            .Length(3, 100).WithMessage("Full name must be between 3 and 100 characters.")
-            .Matches(@"^\p{L}[\p{L} .'\-]*$").WithMessage("Full name may only contain letters, spaces, periods, apostrophes and hyphens.");
+            .MaximumLength(200).WithMessage("Full name is too long.")
+            .Must(name => Passenger.NormalizeName(name).Length is >= 3 and <= 100)
+                .WithMessage("Full name must be between 3 and 100 characters.")
+            .Must(name => AllowedName.IsMatch(Passenger.NormalizeName(name)))
+                .WithMessage("Full name may only contain letters, spaces, periods, apostrophes and hyphens.");
 
         RuleFor(x => x.DocumentNumber)
             .NotEmpty().WithMessage("Document number is required.")
-            .Matches("^[A-Za-z0-9]{5,20}$").WithMessage("Document number must be 5 to 20 alphanumeric characters with no spaces.");
+            .MaximumLength(50).WithMessage("Document number is too long.")
+            .Must(document => Passenger.IsValidDocument(Passenger.NormalizeDocument(document)))
+                .WithMessage("Document number must be 5 to 20 alphanumeric characters with no spaces.");
     }
 }
 
@@ -55,7 +63,7 @@ public static class RegisterPassengerEndpoint
 {
     public static IEndpointRouteBuilder MapRegisterPassengerEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/v1/flights/{flightId:int}/passengers", async (
+        app.MapPost("/{flightId:int}/passengers", async (
                 int flightId,
                 RegisterPassengerRequest request,
                 IValidator<RegisterPassengerRequest> validator,
@@ -70,8 +78,7 @@ public static class RegisterPassengerEndpoint
                 return result.MatchOrProblem(passenger =>
                     TypedResults.Created($"/api/v1/flights/{flightId}/passengers", passenger));
             })
-            .WithName("RegisterPassenger")
-            .WithSummary("Registers a passenger on a flight when seats are available.");
+            .WithName("RegisterPassenger");
 
         return app;
     }

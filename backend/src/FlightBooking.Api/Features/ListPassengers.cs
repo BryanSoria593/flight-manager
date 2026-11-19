@@ -17,6 +17,7 @@ public sealed class ListPassengersHandler(FlightsDbContext db)
             .AsNoTracking()
             .Where(p => p.FlightId == flightId)
             .OrderBy(p => p.RegisteredAt)
+            .ThenBy(p => p.Id)
             .Select(p => new PassengerItem(p.Id, p.FlightId, p.FullName, p.DocumentNumber, p.RegisteredAt))
             .ToListAsync(ct);
     }
@@ -26,11 +27,10 @@ public static class ListPassengersEndpoint
 {
     public static IEndpointRouteBuilder MapListPassengersEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/v1/flights/{flightId:int}/passengers",
+        app.MapGet("/{flightId:int}/passengers",
                 async (int flightId, ListPassengersHandler handler, CancellationToken ct) =>
                     (await handler.HandleAsync(flightId, ct)).MatchOrProblem(passengers => TypedResults.Ok(passengers)))
-            .WithName("ListPassengers")
-            .WithSummary("Lists the passengers registered on a flight.");
+            .WithName("ListPassengers");
 
         return app;
     }
