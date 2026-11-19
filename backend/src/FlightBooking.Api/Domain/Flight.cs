@@ -28,8 +28,11 @@ public sealed class Flight
     public int Capacity { get; private set; }
     public IReadOnlyCollection<Passenger> Passengers => _passengers.AsReadOnly();
 
-    public int AvailableSeats => Capacity - _passengers.Count;
-    public bool IsFull => AvailableSeats <= 0;
+    public int AvailableSeats => SeatsLeft(Capacity, _passengers.Count);
+    public bool IsFull => IsFullFor(Capacity, _passengers.Count);
+
+    public static int SeatsLeft(int capacity, int registeredPassengers) => capacity - registeredPassengers;
+    public static bool IsFullFor(int capacity, int registeredPassengers) => SeatsLeft(capacity, registeredPassengers) <= 0;
 
     public Result<Passenger> RegisterPassenger(string fullName, string documentNumber, DateTimeOffset now)
     {

@@ -45,4 +45,14 @@ public sealed class FlightTests
         Assert.Equal("Passenger.AlreadyRegistered", result.Error.Code);
         Assert.Single(flight.Passengers);
     }
+
+    [Theory]
+    [InlineData("1234")]
+    [InlineData("123456789012345678901")]
+    public void RegisterPassenger_WithDocumentOutsideAllowedLength_Throws(string documentNumber)
+    {
+        var flight = NewFlight(capacity: 2);
+
+        Assert.Throws<ArgumentException>(() => flight.RegisterPassenger("Ana Morales", documentNumber, Now));
+    }
 }

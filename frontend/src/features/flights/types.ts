@@ -1,24 +1,28 @@
-export interface Flight {
-  id: number
-  flightNumber: string
-  origin: string
-  destination: string
-  departsAt: string
-  capacity: number
-  registeredPassengers: number
-  availableSeats: number
-  isFull: boolean
-}
+import { z } from 'zod'
 
-export interface Passenger {
-  id: string
-  flightId: number
-  fullName: string
-  documentNumber: string
-  registeredAt: string
-}
+export const flightSchema = z.object({
+  id: z.number().int(),
+  flightNumber: z.string(),
+  origin: z.string(),
+  destination: z.string(),
+  departsAt: z.iso.datetime({ offset: true }),
+  capacity: z.number().int().positive(),
+  registeredPassengers: z.number().int().nonnegative(),
+  availableSeats: z.number().int().nonnegative(),
+  isFull: z.boolean(),
+})
 
-export interface RegisterPassengerInput {
-  fullName: string
-  documentNumber: string
-}
+export const passengerSchema = z.object({
+  id: z.uuid(),
+  flightId: z.number().int(),
+  fullName: z.string(),
+  documentNumber: z.string(),
+  registeredAt: z.iso.datetime({ offset: true }),
+})
+
+export const flightsSchema = z.array(flightSchema)
+export const passengersSchema = z.array(passengerSchema)
+
+export type Flight = z.infer<typeof flightSchema>
+export type Passenger = z.infer<typeof passengerSchema>
+export type { RegisterPassengerInput } from './schemas/registerPassengerSchema'

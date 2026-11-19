@@ -1,3 +1,4 @@
+using FlightBooking.Api.Domain;
 using FlightBooking.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,26 +10,34 @@ public sealed record FlightItem(
 
 public sealed class ListFlightsHandler(FlightsDbContext db)
 {
-    public Task<List<FlightItem>> HandleAsync(CancellationToken ct) =>
-        db.Flights
+    public async Task<List<FlightItem>> HandleAsync(CancellationToken ct)
+    {
+        var rows = await db.Flights
             .AsNoTracking()
             .OrderBy(f => f.DepartsAt)
-            .Select(f => new FlightItem(
+            .Select(f => new
+            {
                 f.Id, f.FlightNumber, f.Origin, f.Destination, f.DepartsAt, f.Capacity,
-                f.Passengers.Count(),
-                f.Capacity - f.Passengers.Count(),
-                f.Passengers.Count() >= f.Capacity))
+                Registered = f.Passengers.Count(),
+            })
             .ToListAsync(ct);
+
+        return rows
+            .Select(r => new FlightItem(
+                r.Id, r.FlightNumber, r.Origin, r.Destination, r.DepartsAt, r.Capacity, r.Registered,
+                Flight.SeatsLeft(r.Capacity, r.Registered),
+                Flight.IsFullFor(r.Capacity, r.Registered)))
+            .ToList();
+    }
 }
 
 public static class ListFlightsEndpoint
 {
     public static IEndpointRouteBuilder MapListFlightsEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/v1/flights", async (ListFlightsHandler handler, CancellationToken ct) =>
+        app.MapGet("", async (ListFlightsHandler handler, CancellationToken ct) =>
                 TypedResults.Ok(await handler.HandleAsync(ct)))
-            .WithName("ListFlights")
-            .WithSummary("Lists flights with their current occupancy.");
+            .WithName("ListFlights");
 
         return app;
     }

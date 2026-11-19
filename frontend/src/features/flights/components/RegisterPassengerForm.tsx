@@ -1,10 +1,16 @@
+import type { RefObject } from 'react'
 import { Alert } from '../../../shared/components/Alert'
 import { getErrorMessage } from '../../../shared/api/ApiError'
 import { useRegisterPassengerForm } from '../hooks/useRegisterPassengerForm'
 import type { Flight } from '../types'
 
-export function RegisterPassengerForm({ flight }: { flight: Flight }) {
-  const { form, onSubmit, success, registration, showErrorAlert } = useRegisterPassengerForm(flight)
+interface RegisterPassengerFormProps {
+  flight: Flight
+  focusFallbackRef?: RefObject<HTMLElement | null>
+}
+
+export function RegisterPassengerForm({ flight, focusFallbackRef }: RegisterPassengerFormProps) {
+  const { form, onSubmit, success, registration, showErrorAlert } = useRegisterPassengerForm(flight, focusFallbackRef)
   const {
     register,
     formState: { errors },

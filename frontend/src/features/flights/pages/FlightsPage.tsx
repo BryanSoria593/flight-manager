@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Alert } from '../../../shared/components/Alert'
+import { StaleDataWarning } from '../../../shared/components/StaleDataWarning'
 import { getErrorMessage } from '../../../shared/api/ApiError'
 import { useFlights } from '../hooks/useFlights'
 import { FlightCard } from '../components/FlightCard'
@@ -32,17 +33,10 @@ export function FlightsPage() {
 
   return (
     <div className="layout">
-      <section aria-labelledby="flights-title">
+      <section aria-labelledby="flights-title" aria-busy={flights.isFetching}>
         <h2 id="flights-title">Vuelos</h2>
-        {flights.isFetching && <p role="status" className="muted">Actualizando…</p>}
-        {flights.isRefetchError && (
-          <Alert variant="warning">
-            <p>No se pudo actualizar; se muestra la última información disponible.</p>
-            <button type="button" className="btn" onClick={() => flights.refetch()}>
-              Reintentar
-            </button>
-          </Alert>
-        )}
+        {flights.isFetching && <p className="muted">Actualizando…</p>}
+        {flights.isRefetchError && <StaleDataWarning onRetry={() => flights.refetch()} />}
         {flights.data.length === 0 ? (
           <p className="muted">No hay vuelos disponibles.</p>
         ) : (
